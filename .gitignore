@@ -1,0 +1,21 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# DotEnv configuration
+.env
+
+# Pycharm
+.idea
+
+# Poetry
+poetry.lock
+
+# Jupyter NB Checkpoints
+.ipynb_checkpoints/
+
+venv/
+.venv/
+
+# macos related files
+.DS_Store

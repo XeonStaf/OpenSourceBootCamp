@@ -1,0 +1,26 @@
+# Edit this file as you like.
+#
+# All these sections are optional. Each section with the exception of [general] represents
+# one rule and each key in it is an option for that specific rule.
+#
+# Rules and sections can be referenced by their full name or by id. For example
+# section "[body-max-line-length]" could also be written as "[B1]". Full section names are
+# used in here for clarity.
+
+[general]
+# Ignore certain rules, this example uses both full name and id
+# ignore=title-trailing-punctuation, T3
+ignore=body-is-missing
+
+
+# Enable debug mode (prints more output). Disabled by default.
+debug=true
+
+# This is an example of how to configure the "title-max-length" rule and
+# set the line-length it enforces to 50
+[title-max-length]
+line-length=100
+
+[title-match-regex]
+# python-style regex that the commit-msg title must match
+regex=^\[[a-z]+\] [A-Z0-9-]+ [a-z]+\: [A-Za-z0-9]+
