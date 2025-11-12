@@ -1,12 +1,12 @@
 ### Notes for development
 #### Commit syntax
-* regex - `^\[[a-z]+\] [A-Z0-9]+ [a-z]+\: [a-z0-9]+`
-* structure - `[<scope>] <task_id> <type-of-changes>: <msg>`
-* example - `[api] TRQ-0 feat: implement dto validation`
+* regex - `^\[[a-z]+\] [A-Za-z]+ [a-z]+\: [a-z0-9]+`
+* structure - `[<scope>] <feature-name> <type-of-changes>: <msg>`
+* example - `[api] tavily-search feat: implement tool calling`
 #### Branch syntax
 * regex - `[a-z]+/[a-z0-9\-]+-[a-z0-9\-]+`
-* structure - `<scope>/<task-id>-<short-description>`
-* example - `feat/osbc-000`
+* structure - `<scope>/<feature-name>-<short-description>`
+* example - `feat/<feature-name>`
 
 #### Set up **git hooks**
 * `pre-commit install`

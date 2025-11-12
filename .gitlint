@@ -23,4 +23,4 @@ line-length=100
 
 [title-match-regex]
 # python-style regex that the commit-msg title must match
-regex=^\[[a-z]+\] [A-Z0-9-]+ [a-z]+\: [A-Za-z0-9]+
+regex=^\[[a-z]+\] [A-Za-z\-]+ [a-z]+\: [A-Za-z0-9]+
