@@ -12,6 +12,9 @@ langgraph = "^1.0.3"
 langchain-openai = "^1.0.2"
 langchain-tavily = "^0.2.13"
 langchain = "^1.0.5"
+dotenv = "^0.9.9"
+fastapi = "^0.121.1"
+uvicorn = "^0.38.0"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.6.2"
