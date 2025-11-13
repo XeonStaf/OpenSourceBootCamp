@@ -1,5 +1,4 @@
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-from langgraph.prebuilt import create_react_agent
 
 from src.graph.states.state import State
 from src.graph.validator.schemas.validate import Validate
@@ -30,7 +29,8 @@ def define_validating_agent(state: State):
             AIMessage(content=state["output"]),
         ]
     )
-    return {"validation_result": answer.step}
+
+    return {"validation_result": answer.validation_result}
 
 
 def validator_answer(state: State) -> str:
