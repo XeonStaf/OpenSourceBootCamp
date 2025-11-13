@@ -5,7 +5,7 @@ from src.graph.validator.schemas.validate import Validate
 from src.models.llm import llm
 
 
-def define_validating_agent(state: State):
+async def define_validating_agent(state: State):
     """
     Defines valiting agent to validate multi-agent system's response.
 
@@ -17,7 +17,7 @@ def define_validating_agent(state: State):
     """
     validator = llm.with_structured_output(Validate)
 
-    answer = validator.invoke(
+    answer = await validator.ainvoke(
         [
             SystemMessage(
                 content="""You are a very attentive validation agent. Your aim is to validate your collegues response.

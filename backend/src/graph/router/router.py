@@ -7,7 +7,7 @@ from src.models.llm import llm
 router = llm.with_structured_output(Route)
 
 
-def llm_call_router(state: State):
+async def llm_call_router(state: State):
     """
     Routes the user input to either pro-mode or simple-mode based on complexity.
 
@@ -19,7 +19,7 @@ def llm_call_router(state: State):
             being either 'pro' or 'simple'.
     """
 
-    decision = router.invoke(
+    decision = await router.ainvoke(
         [
             SystemMessage(
                 content="""You are a routing classifier that determines the complexity of user questions.
