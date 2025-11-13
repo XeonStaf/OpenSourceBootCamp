@@ -1,0 +1,89 @@
+<div class="ask-page" [class.ask-page--active]="hasLifted">
+  <form
+    class="ask-form"
+    [class.ask-form--lifted]="hasLifted"
+    (ngSubmit)="submitQuestion()"
+    autocomplete="off"
+    novalidate
+  >
+    <input
+      class="ask-input"
+      type="text"
+      name="question"
+      [(ngModel)]="question"
+      placeholder="Задайте вопрос..."
+      [readonly]="isSubmitting"
+    />
+
+    <p-selectButton
+      class="mode-select"
+      name="mode"
+      [options]="modes"
+      [(ngModel)]="mode"
+      optionLabel="label"
+      optionValue="value"
+      dataKey="value"
+      [allowEmpty]="false"
+      [disabled]="isSubmitting"
+    ></p-selectButton>
+
+    <div>
+      <button
+        class="send-button"
+        type="submit"
+        aria-label="Отправить"
+        [disabled]="isSubmitting || !question.trim()"
+      >
+        <span class="send-icon" *ngIf="!isSubmitting">↑</span>
+        <span class="spinner" *ngIf="isSubmitting"></span>
+      </button>
+    </div>
+  </form>
+
+  <section
+    class="status-card"
+    *ngIf="showStatusCard"
+    [class.status-card--success]="cardState === 'success'"
+    [class.status-card--error]="cardState === 'error'"
+  >
+    <div class="status-top">
+      <div class="status-header" [class.status-header--success]="cardState === 'success'">
+        <span
+          class="pulse-indicator"
+          *ngIf="cardState !== 'success'"
+          [class.pulse-indicator--error]="cardState === 'error'"
+        ></span>
+        <span class="status-text">{{ cardMessage }}</span>
+      </div>
+
+      <p-chip styleClass="mode-chip" [label]="modeLabel"></p-chip>
+    </div>
+
+    <div
+      class="card-result"
+      *ngIf="cardState === 'success'"
+      [innerHTML]="cardResultHtml || cardResult"
+    ></div>
+
+    <div class="card-error" *ngIf="cardState === 'error' && !cardResult">
+      Попробуйте отправить запрос позже.
+    </div>
+
+    <div class="card-meta" *ngIf="processingTimeSec">
+      Время обработки: {{ (processingTimeSec ?? 0) | number: '1.2-2' }} с
+    </div>
+
+    <div class="thoughts-card" *ngIf="thoughtLines.length">
+      <button type="button" class="thoughts-toggle" (click)="toggleThoughts()">
+        <span>На чем основан ответ</span>
+        <span class="chevron" [class.chevron--open]="thoughtsExpanded"></span>
+      </button>
+
+      <div class="thoughts-body" [class.thoughts-body--open]="thoughtsExpanded">
+        <ul>
+          <li *ngFor="let thought of thoughtLines">{{ thought }}</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</div>
