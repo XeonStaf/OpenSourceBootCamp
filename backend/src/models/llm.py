@@ -1,10 +1,12 @@
-import os
-
 from langchain_openai import ChatOpenAI
 
-model_name = os.getenv("LLM_NAME")
-base_url = os.getenv("LLM_HOST")
-api_key = os.getenv("API_KEY")
+from src.config.settings import LLM_SETTINGS
 
+settings = LLM_SETTINGS
 
-llm = ChatOpenAI(model=model_name, verbose=True, base_url=base_url, api_key=api_key)
+llm = ChatOpenAI(
+    model=settings.LLM_NAME,
+    verbose=True,
+    base_url=settings.LLM_HOST,
+    api_key=settings.API_KEY,
+)
