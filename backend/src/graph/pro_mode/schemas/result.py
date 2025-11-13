@@ -4,15 +4,23 @@ from pydantic import BaseModel, Field
 
 
 class SubQueryAnswer(BaseModel):
-    answer: str = Field(None, description="""Answer for each short subquery""")
+    answer: str = Field(
+        ...,
+        description="""Comprehensive answer to an individual subquery, incorporating all relevant facts \
+        and providing complete context for that specific aspect of the main question.""",
+    )
 
 
 class Result(BaseModel):
     answers: List[SubQueryAnswer] = Field(
-        None,
-        description="""List with all answers for each subquery""",
+        ...,
+        description="""Complete set of answers for each subquery, serving as the foundational evidence \
+        and building blocks for the final comprehensive response. Each answer should stand on its own \
+        while contributing to the overall understanding.""",
     )
     full_answer: str = Field(
-        None,
-        description="""Provide a complete full answer to the user's question""",
+        ...,
+        description="""Comprehensive response to the user's original question that integrates \
+        all subquery answers into a coherent, well-structured final answer. Should directly address the \
+        main question.""",
     )
