@@ -1,0 +1,57 @@
+:host {
+  display: block;
+  min-height: 100%;
+}
+
+.app-shell {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 0 2rem;
+  background: var(--surface, #fff);
+  border-bottom: 1px solid var(--border-soft, rgba(18, 90, 52, 0.15));
+  box-shadow: 0 2px 20px rgba(10, 92, 52, 0.08);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-main, #0b1d13);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+.brand-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  display: inline-block;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.45);
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.app-content {
+  flex: 1;
+  padding: 2rem 1rem 3rem;
+}
+
+@media (max-width: 768px) {
+  .app-toolbar {
+    padding: 0 1rem;
+  }
+}

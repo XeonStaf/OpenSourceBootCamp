@@ -1,0 +1,31 @@
+:root,
+body,
+app-root {
+  height: 100%;
+}
+
+:root {
+  --accent: #55d86f;
+  --accent-strong: #2c9f54;
+  --surface: rgba(4, 10, 20, 0.85);
+  --surface-soft: rgba(7, 18, 39, 0.65);
+  --text-main: #f8fafc;
+  --text-muted: rgba(226, 232, 240, 0.7);
+  --border-soft: rgba(108, 243, 163, 0.25);
+  --theme-gradient: radial-gradient(
+      circle at 15% 80%,
+      rgba(61, 201, 133, 0.35),
+      transparent 45%
+    ),
+    radial-gradient(circle at 85% 15%, rgba(30, 118, 74, 0.3), transparent 35%),
+    linear-gradient(145deg, #030712, #071227 55%, #0b1c30);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  background: var(--theme-gradient);
+  color: var(--text-main);
+}

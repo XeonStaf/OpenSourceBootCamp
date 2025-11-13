@@ -9,7 +9,7 @@ from src.models.llm import llm
 settings = LLM_SETTINGS
 
 tavily_search = TavilySearch(
-    tavily_api_key=settings.TAVILY_API_KEY, max_results=settings.TAVILY_MAX_RESULTS, topic="general"
+    tavily_api_key=settings.TAVILY_API_KEY, max_results=settings.TAVILY_MAX_RESULTS, include_domains=['habr.com']
 )
 
 
