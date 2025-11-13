@@ -127,7 +127,7 @@ class TaskManager:
         while state["validation_attempts"] < self._max_validation_attempts:
             attempt_number = state["validation_attempts"] + 1
             if forced_mode is None:
-                decision_block = await asyncio.to_thread(llm_call_router, state)
+                decision_block = await llm_call_router(state)
                 decision = decision_block["decision"]
                 router_message = f"[Attempt {attempt_number}] Routed query to {decision.upper()} mode."
             else:
@@ -141,13 +141,13 @@ class TaskManager:
             await self._append_thought(task_id, router_message)
 
             if decision == "pro":
-                output_block = await asyncio.to_thread(pro_mode, state)
+                output_block = await pro_mode(state)
                 await self._append_thought(
                     task_id,
                     f"[Attempt {attempt_number}] Pro mode collected and synthesized information.",
                 )
             else:
-                output_block = await asyncio.to_thread(simple_mode, state)
+                output_block = await simple_mode(state)
                 await self._append_thought(
                     task_id,
                     f"[Attempt {attempt_number}] Simple mode generated a direct answer.",
@@ -155,11 +155,11 @@ class TaskManager:
 
             state.update(output_block)
 
-            validation_block = await asyncio.to_thread(define_validating_agent, state)
+            validation_block = await define_validating_agent(state)
             state.update(validation_block)
             state["validation_attempts"] += 1
 
-            validation_result = await asyncio.to_thread(validator_answer, state)
+            validation_result = validator_answer(state)
             await self._append_thought(
                 task_id,
                 f"[Attempt {attempt_number}] Validator response: {validation_result}.",
