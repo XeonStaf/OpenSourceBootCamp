@@ -30,7 +30,7 @@ def define_validating_agent(state: State):
             AIMessage(content=state["output"]),
         ]
     )
-    return {"answer": answer.step}
+    return {"validation_result": answer.step}
 
 
 def validator_answer(state: State) -> str:
@@ -43,7 +43,7 @@ def validator_answer(state: State) -> str:
     Returns:
         String with valirdator's answer: either 'yes' or 'no'.
     """
-    if state["answer"] == "yes":
+    if state["validation_result"] == "yes":
         return "yes"
-    elif state["answer"] == "no":
+    elif state["validation_result"] == "no":
         return "no"

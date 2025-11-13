@@ -10,17 +10,17 @@ from src.graph.validator.validator import define_validating_agent, validator_ans
 def validation_router(state: State):
     # Check number of attempt in state
     if not hasattr(state, "validation_attempts"):
-        state.validation_attempts = 0
+        state["validation_attempts"] = 0
 
     result = validator_answer(state)
-    state.validation_attempts += 1
+    state["validation_attempts"] += 1
 
-    if state.validation_attempts >= 3:
+    if state["validation_attempts"] >= 3:
         return "max_attempts_reached"
 
     if result == "yes":
         return "yes"
-    elif result == "no" and state.validation_attempts < 3:
+    elif result == "no" and state["validation_attempts"] < 3:
         return "retry"
 
 

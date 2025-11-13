@@ -6,3 +6,4 @@ class State(TypedDict):
     decision: str
     output: str
     validation_attempts: int = 0
+    validation_result: str
