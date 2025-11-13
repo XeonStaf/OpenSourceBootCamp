@@ -22,14 +22,28 @@ def llm_call_router(state: State):
     decision = router.invoke(
         [
             SystemMessage(
-                content="""Route the input to pro-mode or simple-mode of the system.
-                - Pro-mode is a researcher mode. It is used for complex questions.
-                - Simple-mode is a simple knowledge QA-system for simple questions.
-                Just write pro or simple"""
+                content="""You are a routing classifier that determines the complexity of user questions.
+
+                **Routing Guidelines:**
+
+                **PRO-MODE** (Researcher Mode) - Use for:
+                - Complex analytical questions requiring multi-step reasoning
+                - Questions involving comparisons, calculations, or data analysis
+                - Queries that need information synthesis from multiple sources
+                - Research-oriented or in-depth investigation questions
+
+                **SIMPLE-MODE** (Knowledge QA) - Use for:
+                - Straightforward factual questions with single answers
+                - Direct lookups of specific information
+                - Definitions, simple facts, or basic knowledge queries
+                - Questions answerable with a single piece of information
+
+                **Output Format:** Respond with ONLY "pro" or "simple" - no additional text."""
             ),
             HumanMessage(content=state["input"]),
         ]
     )
+    print(f"Decision: {decision}")
     return {"decision": decision.step}
 
 

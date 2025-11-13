@@ -1,7 +1,9 @@
 from langgraph.graph import END, START, StateGraph
 
-from src.graph.nodes.pro import pro_mode
 from src.graph.nodes.simple import simple_mode
+from src.graph.pro_mode.aggregator import aggregator
+from src.graph.pro_mode.decomposer import decomposer
+from src.graph.pro_mode.facts_retriever import retrieve_facts
 from src.graph.router.router import llm_call_router, route_decision
 from src.graph.states.state import State
 from src.graph.validator.validator import define_validating_agent, validator_answer
@@ -26,19 +28,24 @@ def validation_router(state: State):
 
 router_builder = StateGraph(State)
 
-router_builder.add_node("pro", pro_mode)
-router_builder.add_node("simple", simple_mode)
+
 router_builder.add_node("llm_call_router", llm_call_router)
+router_builder.add_node("simple", simple_mode)
+router_builder.add_node("pro", decomposer)
+router_builder.add_node("retrieve_facts", retrieve_facts)
 router_builder.add_node("validator", define_validating_agent)
+router_builder.add_node("aggregator", aggregator)
 
 router_builder.add_edge(START, "llm_call_router")
 router_builder.add_conditional_edges(
     "llm_call_router",
     route_decision,
-    {"pro": "pro", "simple": "simple"},
+    {"pro": "pro", "simple": "pro"},
 )
-router_builder.add_edge("pro", "validator")
-router_builder.add_edge("simple", "validator")
+router_builder.add_edge("pro", "retrieve_facts")  # "validator")
+router_builder.add_edge("retrieve_facts", "aggregator")  # "validator")
+router_builder.add_edge("aggregator", END)  # "validator")
+router_builder.add_edge("simple", END)  # "validator")
 
 router_builder.add_conditional_edges(
     "validator",

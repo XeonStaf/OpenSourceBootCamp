@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, Literal, Optional
 from uuid import uuid4
 
-from src.graph.nodes.pro import pro_mode
 from src.graph.nodes.simple import simple_mode
+from src.graph.pro_mode.decomposer import decomposer
 from src.graph.router.router import llm_call_router
 from src.graph.states.state import State
 from src.graph.validator.validator import define_validating_agent, validator_answer
@@ -38,12 +38,14 @@ class TaskRecord:
         return {
             "task_id": self.task_id,
             "status": self.status,
-            "details": None
-            if self.details is None or self.details.mode is None
-            else {
-                "mode": self.details.mode,
-                "thoughts": self.details.thoughts,
-            },
+            "details": (
+                None
+                if self.details is None or self.details.mode is None
+                else {
+                    "mode": self.details.mode,
+                    "thoughts": self.details.thoughts,
+                }
+            ),
             "result": self.result,
             "error": self.error,
             "created_at": self.created_at,
@@ -132,16 +134,14 @@ class TaskManager:
                 router_message = f"[Attempt {attempt_number}] Routed query to {decision.upper()} mode."
             else:
                 decision = forced_mode
-                router_message = (
-                    f"[Attempt {attempt_number}] Forced mode set to {decision.upper()}."
-                )
+                router_message = f"[Attempt {attempt_number}] Forced mode set to {decision.upper()}."
             state["decision"] = decision
 
             await self._set_mode(task_id, decision)
             await self._append_thought(task_id, router_message)
 
             if decision == "pro":
-                output_block = await asyncio.to_thread(pro_mode, state)
+                output_block = await asyncio.to_thread(decomposer, state)
                 await self._append_thought(
                     task_id,
                     f"[Attempt {attempt_number}] Pro mode collected and synthesized information.",
@@ -217,4 +217,3 @@ class TaskManager:
 
 
 task_manager = TaskManager()
-
