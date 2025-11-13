@@ -8,6 +8,6 @@ answer_router = APIRouter()
 
 
 @answer_router.post("/answer")
-async def answer(request: Query) -> Answer:
+def answer(request: Query) -> Answer:
     state = router_workflow.invoke({"input": request.query})
     return Answer(answer=state["output"], router=state["decision"])
