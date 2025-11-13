@@ -11,3 +11,15 @@ class Mode(BaseModel):
     """
 
     mode: Literal["pro", "simple"]
+
+
+class Answer(BaseModel):
+    """Pydantic model for answer.
+
+    Attributes:
+        answer: answer for user's question
+        router: the system mode to use for answering the user's question (pro or simple)
+    """
+
+    answer: str
+    router: Literal["pro", "simple"]
