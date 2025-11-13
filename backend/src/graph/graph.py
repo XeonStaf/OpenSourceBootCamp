@@ -3,6 +3,7 @@ from langgraph.graph import END, START, StateGraph
 from src.graph.nodes.pro import pro_mode
 from src.graph.nodes.simple import simple_mode
 from src.graph.router.router import llm_call_router, route_decision
+from src.graph.validator.validator import define_validating_agent, validator_answer
 from src.graph.states.state import State
 
 router_builder = StateGraph(State)
@@ -10,6 +11,7 @@ router_builder = StateGraph(State)
 router_builder.add_node("pro", pro_mode)
 router_builder.add_node("simple", simple_mode)
 router_builder.add_node("llm_call_router", llm_call_router)
+router_builder.add_node("validator", define_validating_agent)
 
 router_builder.add_edge(START, "llm_call_router")
 router_builder.add_conditional_edges(
@@ -17,7 +19,16 @@ router_builder.add_conditional_edges(
     route_decision,
     {"pro": "pro", "simple": "simple"},
 )
-router_builder.add_edge("pro", END)
-router_builder.add_edge("simple", END)
+router_builder.add_edge("pro", "validator")
+router_builder.add_edge("simple", "validator")
+
+router_builder.add_conditional_edges(
+    "validator",
+    validator_answer,
+    {
+        "yes": END,              # End the cycle if user's question was answered  
+        "no": "llm_call_router"  # Go back to router, if MAS' response was unsafficient
+    }
+)
 
 router_workflow = router_builder.compile()
