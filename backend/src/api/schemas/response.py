@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel
@@ -23,3 +24,21 @@ class Answer(BaseModel):
 
     answer: str
     router: Literal["pro", "simple"]
+
+
+class TaskCreationResponse(BaseModel):
+    task_id: str
+
+
+class TaskDetailsResponse(BaseModel):
+    mode: Literal["pro", "simple"]
+    thoughts: str
+
+
+class TaskStatusResponse(BaseModel):
+    task_id: str
+    status: Literal["pending", "running", "succeeded", "failed"]
+    details: TaskDetailsResponse | None = None
+    result: str | None = None
+    error: str | None = None
+    created_at: datetime

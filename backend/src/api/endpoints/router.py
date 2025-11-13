@@ -1,13 +1,22 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
-from src.api.schemas.query import Query
-from src.api.schemas.response import Mode
-from src.graph.graph import router_workflow
+from src.api.schemas.query import ModeQuery
+from src.api.schemas.response import TaskCreationResponse, TaskStatusResponse
+from src.api.services.task_manager import task_manager
 
 mode_router = APIRouter()
 
 
 @mode_router.post("/get-mode")
-async def get_mode(request: Query) -> Mode:
-    state = router_workflow.invoke({"input": request.query})
-    return Mode(mode=state["decision"])
+async def enqueue_mode_detection(request: ModeQuery) -> TaskCreationResponse:
+    task_id = await task_manager.create_task(request.query, forced_mode=request.mode)
+    return TaskCreationResponse(task_id=task_id)
+
+
+@mode_router.get("/tasks/{task_id}")
+async def get_task(task_id: str) -> TaskStatusResponse:
+    try:
+        payload = await task_manager.get_task_payload(task_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Task not found") from exc
+    return TaskStatusResponse(**payload)
