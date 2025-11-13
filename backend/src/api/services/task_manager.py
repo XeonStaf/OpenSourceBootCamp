@@ -56,7 +56,11 @@ class TaskManager:
         self._lock = asyncio.Lock()
         self._max_validation_attempts = max_validation_attempts
 
-    async def create_task(self, query: str) -> str:
+    async def create_task(
+        self,
+        query: str,
+        forced_mode: Literal["pro", "simple"] | None = None,
+    ) -> str:
         task_id = uuid4().hex
         now = datetime.now(timezone.utc)
         record = TaskRecord(
@@ -69,7 +73,7 @@ class TaskManager:
         async with self._lock:
             self._tasks[task_id] = record
 
-        asyncio.create_task(self._process_task(task_id, query))
+        asyncio.create_task(self._process_task(task_id, query, forced_mode))
         return task_id
 
     async def get_task_payload(self, task_id: str) -> Dict[str, Any]:
@@ -79,7 +83,12 @@ class TaskManager:
                 raise KeyError(task_id)
             return task.to_response_payload()
 
-    async def _process_task(self, task_id: str, query: str) -> None:
+    async def _process_task(
+        self,
+        task_id: str,
+        query: str,
+        forced_mode: Literal["pro", "simple"] | None,
+    ) -> None:
         await self._update_task(task_id, status="running")
         state: State = {
             "input": query,
@@ -90,7 +99,7 @@ class TaskManager:
         }
 
         try:
-            success, output = await self._execute_pipeline(task_id, state)
+            success, output = await self._execute_pipeline(task_id, state, forced_mode)
         except Exception as exc:  # pylint: disable=broad-except
             await self._update_task(
                 task_id,
@@ -107,20 +116,29 @@ class TaskManager:
                     error="Validation failed after maximum attempts.",
                 )
 
-    async def _execute_pipeline(self, task_id: str, state: State) -> tuple[bool, Optional[str]]:
+    async def _execute_pipeline(
+        self,
+        task_id: str,
+        state: State,
+        forced_mode: Literal["pro", "simple"] | None,
+    ) -> tuple[bool, Optional[str]]:
         validation_result: Optional[str] = None
 
         while state["validation_attempts"] < self._max_validation_attempts:
             attempt_number = state["validation_attempts"] + 1
-            decision_block = await asyncio.to_thread(llm_call_router, state)
-            decision = decision_block["decision"]
+            if forced_mode is None:
+                decision_block = await asyncio.to_thread(llm_call_router, state)
+                decision = decision_block["decision"]
+                router_message = f"[Attempt {attempt_number}] Routed query to {decision.upper()} mode."
+            else:
+                decision = forced_mode
+                router_message = (
+                    f"[Attempt {attempt_number}] Forced mode set to {decision.upper()}."
+                )
             state["decision"] = decision
 
             await self._set_mode(task_id, decision)
-            await self._append_thought(
-                task_id,
-                f"[Attempt {attempt_number}] Routed query to {decision.upper()} mode.",
-            )
+            await self._append_thought(task_id, router_message)
 
             if decision == "pro":
                 output_block = await asyncio.to_thread(pro_mode, state)

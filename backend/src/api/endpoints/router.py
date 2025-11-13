@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
-from src.api.schemas.query import Query
+from src.api.schemas.query import ModeQuery
 from src.api.schemas.response import TaskCreationResponse, TaskStatusResponse
 from src.api.services.task_manager import task_manager
 
@@ -8,8 +8,8 @@ mode_router = APIRouter()
 
 
 @mode_router.post("/get-mode")
-async def enqueue_mode_detection(request: Query) -> TaskCreationResponse:
-    task_id = await task_manager.create_task(request.query)
+async def enqueue_mode_detection(request: ModeQuery) -> TaskCreationResponse:
+    task_id = await task_manager.create_task(request.query, forced_mode=request.mode)
     return TaskCreationResponse(task_id=task_id)
 
 
