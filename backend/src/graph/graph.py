@@ -40,7 +40,7 @@ router_builder.add_edge(START, "llm_call_router")
 router_builder.add_conditional_edges(
     "llm_call_router",
     route_decision,
-    {"pro": "pro", "simple": "pro"},
+    {"pro": "pro", "simple": "simple"},
 )
 router_builder.add_edge("pro", "retrieve_facts")  # "validator")
 router_builder.add_edge("retrieve_facts", "aggregator")  # "validator")
