@@ -6,6 +6,23 @@ from src.graph.router.router import llm_call_router, route_decision
 from src.graph.validator.validator import define_validating_agent, validator_answer
 from src.graph.states.state import State
 
+
+def validation_router(state: State):
+    # Check number of attempt in state
+    if not hasattr(state, 'validation_attempts'):
+        state.validation_attempts = 0
+    
+    result = validator_answer(state)
+    
+    if result == "yes":
+        return "yes"
+    elif result == "no" and state.validation_attempts < 3:
+        state.validation_attempts += 1
+        return "retry"
+    else:
+        return "max_attempts_reached"
+
+
 router_builder = StateGraph(State)
 
 router_builder.add_node("pro", pro_mode)
@@ -24,10 +41,11 @@ router_builder.add_edge("simple", "validator")
 
 router_builder.add_conditional_edges(
     "validator",
-    validator_answer,
+    validation_router,
     {
-        "yes": END,              # End the cycle if user's question was answered  
-        "no": "llm_call_router"  # Go back to router, if MAS' response was unsafficient
+        "yes": END,                  # End the cycle if user's question was answered  
+        "retry": "llm_call_router",  # Go back to router, if MAS' response was unsafficient and max_attempts < 3
+        "max_attempts_reached": END  # End if max_attempts > 3
     }
 )
 
