@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.graph.router.schemas.route import Route
@@ -19,17 +21,35 @@ async def llm_call_router(state: State):
             being either 'pro' or 'simple'.
     """
 
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
     decision = await router.ainvoke(
         [
             SystemMessage(
-                content="""Route the input to pro-mode or simple-mode of the system.
-                - Pro-mode is a researcher mode. It is used for complex questions.
-                - Simple-mode is a simple knowledge QA-system for simple questions.
-                Just write pro or simple"""
+                content=f"""You are a routing classifier that determines the complexity of user questions.
+
+                Current date and time: {current_time}
+
+                **Routing Guidelines:**
+
+                pro (Researcher Mode) - Use for:
+                - Complex analytical questions requiring multi-step reasoning
+                - Questions involving comparisons, calculations, or data analysis
+                - Queries that need information synthesis from multiple sources
+                - Research-oriented or in-depth investigation questions
+
+                simple (Knowledge QA) - Use for:
+                - Straightforward factual questions with single answers
+                - Direct lookups of specific information
+                - Definitions, simple facts, or basic knowledge queries
+                - Questions answerable with a single piece of information
+
+                **Output Format:** Respond with ONLY "pro" or "simple" - no additional text."""
             ),
             HumanMessage(content=state["input"]),
         ]
     )
+    print(f"Decision: {decision}")
     return {"decision": decision.step}
 
 
