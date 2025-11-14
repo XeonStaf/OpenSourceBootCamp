@@ -4,17 +4,55 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.config.search import search_settings
 from src.graph.pro_mode.schemas.facts import Facts
+from src.graph.pro_mode.schemas.foreign_question import ForeignQuestion
 from src.graph.states.state import State
 from src.models.llm import llm
 from src.searches.extractor import fetch_and_extract
 
 llm_for_facts = llm.with_structured_output(Facts)
+foreign_llm = llm.with_structured_output(ForeignQuestion)
 
 
 def retrieve_facts(state: State):
     questions = [question.text[: search_settings.MAX_LEN] for question in state["sub_queries"]]
 
-    retrieved_texts = asyncio.run(fetch_and_extract(questions))
+    foreign_question = foreign_llm.invoke(
+        [
+            SystemMessage(
+                content="""You are a professional multilingual translator specialized in query localization.
+
+TRANSLATION PROTOCOL:
+- Analyze the input query to determine its original language
+- If the query is in ENGLISH → Translate to RUSSIAN
+- If the query is in ANY OTHER LANGUAGE → Translate to ENGLISH
+- Preserve technical terms, proper names, and contextual meaning
+- Ensure the translation is natural and idiomatic in the target language
+
+QUALITY STANDARDS:
+- Maintain original intent and semantic accuracy
+- Preserve domain-specific terminology
+- Ensure grammatical correctness in target language
+- Adapt cultural references when appropriate"""
+            ),
+            HumanMessage(
+                content=f"""**QUERY TO TRANSLATE:**
+{state["input"]}
+
+TASK:
+1. Identify the original language of this query
+2. Apply the translation protocol to convert to the appropriate target language
+3. Provide both the language classification and accurate translation"""
+            ),
+        ]
+    )
+
+    country = "united states"
+    if foreign_question.language == "eng":
+        country = "russia"
+
+    retrieved_texts = asyncio.run(
+        fetch_and_extract(questions, foreign_query=foreign_question.question, country=country)
+    )
     source_facts = []
     for text in retrieved_texts:
         content = "------".join([article["raw_content"] for article in text["results"]])

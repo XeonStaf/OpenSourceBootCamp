@@ -8,11 +8,22 @@ from src.config.settings import LLM_SETTINGS
 tavily_client = AsyncTavilyClient(api_key=LLM_SETTINGS.TAVILY_API_KEY)
 
 
-async def fetch_and_extract(queries):
+async def fetch_and_extract(queries, foreign_query: str = None, country: str = None):
 
     processed_queries = [
         {"query": query, "search_depth": "advanced", "max_results": search_settings.MAX_RESULTS} for query in queries
     ]
+
+    if foreign_query:
+        processed_foreign_query = [
+            {
+                "query": foreign_query,
+                "search_depth": "advanced",
+                "max_results": search_settings.MAX_RESULTS,
+                "country": country,
+            }
+        ]
+        processed_queries += processed_foreign_query
 
     responses = await asyncio.gather(*[tavily_client.search(**q) for q in processed_queries])
 
