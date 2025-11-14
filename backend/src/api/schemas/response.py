@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Literal
+from typing import Any, Dict, Literal
 
 from pydantic import BaseModel
 
@@ -33,6 +33,7 @@ class TaskCreationResponse(BaseModel):
 class TaskDetailsResponse(BaseModel):
     mode: Literal["pro", "simple"]
     thoughts: str
+    thoughts_data: Dict[str, Any] | None = None
 
 
 class TaskStatusResponse(BaseModel):

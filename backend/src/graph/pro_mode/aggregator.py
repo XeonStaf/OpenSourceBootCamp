@@ -7,8 +7,8 @@ from src.models.llm import llm
 llm_aggregator = llm.with_structured_output(Result)
 
 
-def aggregator(state: State):
-    answer = llm_aggregator.invoke(
+async def aggregator(state: State):
+    answer = await llm_aggregator.ainvoke(
         [
             SystemMessage(
                 content="""You are an expert research analyst tasked with synthesizing information from multiple sources.

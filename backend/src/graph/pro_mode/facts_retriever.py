@@ -1,5 +1,3 @@
-import asyncio
-
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.config.search import search_settings
@@ -13,10 +11,10 @@ llm_for_facts = llm.with_structured_output(Facts)
 foreign_llm = llm.with_structured_output(ForeignQuestion)
 
 
-def retrieve_facts(state: State):
+async def retrieve_facts(state: State):
     questions = [question.text[: search_settings.MAX_LEN] for question in state["sub_queries"]]
 
-    foreign_question = foreign_llm.invoke(
+    foreign_question = await foreign_llm.ainvoke(
         [
             SystemMessage(
                 content="""You are a professional multilingual translator specialized in query localization.
@@ -49,14 +47,14 @@ TASK:
     country = "united states"
     if foreign_question.language == "eng":
         country = "russia"
-    retrieved_texts = asyncio.run(
-        fetch_and_extract(questions, foreign_query=foreign_question.translated_question, country=country)
+    retrieved_texts = await fetch_and_extract(
+        questions, foreign_query=foreign_question.translated_question, country=country
     )
     source_facts = []
     for text in retrieved_texts:
         content = "------".join([article["raw_content"] for article in text["results"]])
         print(f"Content: {content[:100]}...")
-        collected_facts = llm_for_facts.invoke(
+        collected_facts = await llm_for_facts.ainvoke(
             [
                 SystemMessage(
                     content="""You are an expert information analyst specialized in fact extraction.

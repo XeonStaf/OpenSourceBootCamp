@@ -4,9 +4,9 @@ from src.graph.pro_mode.llm_decomposer import llm_decomposer
 from src.graph.states.state import State
 
 
-def decomposer(state: State):
+async def decomposer(state: State):
     """Handles complex questions using the pro-mode researcher system"""
-    result = llm_decomposer.invoke(
+    result = await llm_decomposer.ainvoke(
         [
             SystemMessage(
                 content="""Role: You are an expert in logical decomposition and information retrieval.
@@ -27,4 +27,11 @@ Principles for Decomposition:
     print(f"total_subquestions: {result.total_subquestions}")
     print(f"subquestions: {result.subquestions}")
 
-    return {"sub_queries": result.subquestions}
+    return {
+        "sub_queries": result.subquestions,
+        "decomposition_info": {
+            "reasoning": result.reasoning,
+            "total_subquestions": result.total_subquestions,
+            "subquestions": result.subquestions,
+        },
+    }
