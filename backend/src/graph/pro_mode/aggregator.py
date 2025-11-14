@@ -54,5 +54,6 @@ def aggregator(state: State):
             ),
         ]
     )
+
     print(answer)
     return {"output": answer.full_answer}

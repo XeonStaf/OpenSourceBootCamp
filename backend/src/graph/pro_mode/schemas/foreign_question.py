@@ -3,7 +3,7 @@ from typing_extensions import Literal
 
 
 class ForeignQuestion(BaseModel):
-    question: str = Field(
+    translated_question: str = Field(
         ...,
         description="""Accurate translation of the original query following language rules:
         - If original is English → translate to Russian
@@ -16,4 +16,3 @@ class ForeignQuestion(BaseModel):
         - 'eng': Original query is in English
         - 'other': Original query is in any language other than English""",
     )
-    

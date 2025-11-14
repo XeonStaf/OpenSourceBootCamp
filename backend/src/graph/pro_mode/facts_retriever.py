@@ -49,9 +49,8 @@ TASK:
     country = "united states"
     if foreign_question.language == "eng":
         country = "russia"
-
     retrieved_texts = asyncio.run(
-        fetch_and_extract(questions, foreign_query=foreign_question.question, country=country)
+        fetch_and_extract(questions, foreign_query=foreign_question.translated_question, country=country)
     )
     source_facts = []
     for text in retrieved_texts:
