@@ -36,6 +36,8 @@ export class AskPageComponent implements OnDestroy {
   processingTimeSec: number | null = null;
   thoughtLines: string[] = [];
   thoughtsExpanded = false;
+  proLiveReasoning: ProReasoning | null = null;
+  proFinalReasoning: ProReasoning | null = null;
 
   cardResultHtml: SafeHtml | null = null;
 
@@ -72,6 +74,8 @@ export class AskPageComponent implements OnDestroy {
     this.processingTimeSec = null;
     this.thoughtLines = [];
     this.thoughtsExpanded = false;
+    this.proLiveReasoning = null;
+    this.proFinalReasoning = null;
 
     try {
       const payload: QueryPayload = { query: trimmed };
@@ -108,6 +112,10 @@ export class AskPageComponent implements OnDestroy {
           this.http.get<TaskStatusResponse>(`${this.baseUrl}/debug/tasks/${taskId}`)
         );
 
+        if (this.mode === 'pro' && this.cardState === 'loading') {
+          this.proLiveReasoning = this.extractProReasoning(result.details?.thoughts_data) ?? this.proLiveReasoning;
+        }
+
         if (result.status === 'succeeded') {
           this.cardState = 'success';
           this.cardResult = result.result ?? 'Ответ не найден.';
@@ -116,6 +124,8 @@ export class AskPageComponent implements OnDestroy {
           );
           this.cardMessage = 'Результат готов';
           this.thoughtLines = this.extractThoughtLines(result.details?.thoughts);
+          this.proFinalReasoning = this.extractProReasoning(result.details?.thoughts_data);
+          this.proLiveReasoning = null;
           this.setProcessingTime();
           return;
         }
@@ -124,6 +134,8 @@ export class AskPageComponent implements OnDestroy {
           this.cardState = 'error';
           this.cardMessage = 'Запрос завершился с ошибкой.';
           this.thoughtLines = [];
+          this.proFinalReasoning = null;
+          this.proLiveReasoning = null;
           this.setProcessingTime();
           return;
         }
@@ -132,6 +144,8 @@ export class AskPageComponent implements OnDestroy {
         this.cardMessage = 'Ошибка при получении статуса.';
         console.error('Polling error', error);
         this.thoughtLines = [];
+        this.proFinalReasoning = null;
+        this.proLiveReasoning = null;
         this.setProcessingTime();
         return;
       }
@@ -161,6 +175,31 @@ export class AskPageComponent implements OnDestroy {
       .split(/\r?\n/)
       .map(line => line.trim())
       .filter(Boolean);
+  }
+
+  private extractProReasoning(value?: ThoughtsData | null): ProReasoning | null {
+    if (!value?.attempts?.length) {
+      return null;
+    }
+
+    const attempt = value.attempts.find(item => item.number === value.current_attempt) ?? value.attempts[0];
+    if (!attempt?.steps?.length) {
+      return null;
+    }
+
+    const decompositionStep = attempt.steps.find(step => step.type === 'decomposition' && step.data) as ThoughtsStep | undefined;
+    const reasoning = decompositionStep?.data?.reasoning ?? '';
+    const subquestions = decompositionStep?.data?.subquestions ?? [];
+
+    const progressSteps = attempt.steps.filter(step => step.type === 'progress' || step.type === 'completion');
+
+    return {
+      reasoning,
+      subquestions,
+      progressSteps,
+      attemptNumber: attempt.number,
+      status: attempt.status
+    };
   }
 
   private renderMarkdown(markdown: string): string {
@@ -273,4 +312,43 @@ interface QueryPayload {
 interface TaskDetails {
   mode?: string;
   thoughts?: string;
+  thoughts_data?: ThoughtsData;
+}
+
+interface ThoughtsData {
+  attempts: ThoughtsAttempt[];
+  current_attempt: number;
+}
+
+interface ThoughtsAttempt {
+  number: number;
+  status: string;
+  steps: ThoughtsStep[];
+}
+
+interface ThoughtsStep {
+  type: 'mode' | 'decomposition' | 'progress' | 'completion' | 'validation';
+  message: string;
+  timestamp: string;
+  data?: ThoughtsStepData;
+}
+
+interface ThoughtsStepData {
+  reasoning?: string;
+  total_subquestions?: number;
+  subquestions?: SubQuestion[];
+}
+
+interface SubQuestion {
+  number: number;
+  text: string;
+}
+
+interface ProReasoning {
+  reasoning: string;
+  subquestions: SubQuestion[];
+  progressSteps: ThoughtsStep[];
+  attemptNumber: number;
+  status: string;
+  toggled?: boolean;
 }
