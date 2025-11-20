@@ -3,6 +3,7 @@ from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from src.graph.states.state import State
 from src.graph.validator.schemas.validate import Validate
 from src.models.llm import llm
+from src.utils.token_callback import TokenUsageCallback
 
 
 async def define_validating_agent(state: State):
@@ -17,20 +18,24 @@ async def define_validating_agent(state: State):
     """
     validator = llm.with_structured_output(Validate)
 
-    answer = await validator.ainvoke(
-        [
-            SystemMessage(
-                content="""You are a very attentive validation agent. Your aim is to validate your collegues response.
+    messages = [
+        SystemMessage(
+            content="""You are a very attentive validation agent. Your aim is to validate your collegues response.
                 You will also perceive initial user's query. Compare initial user's query and your collegues response
                 to it. Return was the user's question answered or not. If question was answered - return only 'yes',
                     else - return only 'no'. Return only one word. Think!"""
-            ),
-            HumanMessage(content=state["input"]),
-            AIMessage(content=state["output"]),
-        ]
-    )
+        ),
+        HumanMessage(content=state["input"]),
+        AIMessage(content=state["output"]),
+    ]
+    
+    callback = TokenUsageCallback()
+    answer = await validator.ainvoke(messages, config={"callbacks": [callback]})
+    
+    token_usage = callback.get_token_usage()
+    raw_response = type("Response", (), {"response_metadata": {"token_usage": token_usage}})()
 
-    return {"validation_result": answer.validation_result}
+    return {"validation_result": answer.validation_result, "_raw_response": raw_response}
 
 
 def validator_answer(state: State) -> str:

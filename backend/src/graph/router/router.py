@@ -1,10 +1,12 @@
 from datetime import datetime
 
+from langchain_core.callbacks import CallbackManager
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.graph.router.schemas.route import Route
 from src.graph.states.state import State
 from src.models.llm import llm
+from src.utils.token_callback import TokenUsageCallback
 
 router = llm.with_structured_output(Route)
 
@@ -18,15 +20,14 @@ async def llm_call_router(state: State):
 
     Returns:
         dict: A dictionary containing the routing decision with key 'decision' and value
-            being either 'pro' or 'simple'.
+            being either 'pro' or 'simple', and '_raw_response' with response metadata.
     """
 
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    decision = await router.ainvoke(
-        [
-            SystemMessage(
-                content=f"""You are a routing classifier that determines the complexity of user questions.
+    messages = [
+        SystemMessage(
+            content=f"""You are a routing classifier that determines the complexity of user questions.
 
                 Current date and time: {current_time}
 
@@ -45,12 +46,18 @@ async def llm_call_router(state: State):
                 - Questions answerable with a single piece of information
 
                 **Output Format:** Respond with ONLY "pro" or "simple" - no additional text."""
-            ),
-            HumanMessage(content=state["input"]),
-        ]
-    )
+        ),
+        HumanMessage(content=state["input"]),
+    ]
+    
+    callback = TokenUsageCallback()
+    decision = await router.ainvoke(messages, config={"callbacks": [callback]})
+    
+    token_usage = callback.get_token_usage()
+    raw_response = type("Response", (), {"response_metadata": {"token_usage": token_usage}})()
+    
     print(f"Decision: {decision}")
-    return {"decision": decision.step}
+    return {"decision": decision.step, "_raw_response": raw_response}
 
 
 def route_decision(state: State) -> str:

@@ -1,15 +1,22 @@
+import logging
+
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.graph.pro_mode.llm_decomposer import llm_decomposer
 from src.graph.states.state import State
+from src.utils.token_callback import TokenUsageCallback
+
+logger = logging.getLogger(__name__)
 
 
 async def decomposer(state: State):
     """Handles complex questions using the pro-mode researcher system"""
-    result = await llm_decomposer.ainvoke(
-        [
-            SystemMessage(
-                content="""Role: You are an expert in logical decomposition and information retrieval.
+    query_preview = state["input"][:100] + ("..." if len(state["input"]) > 100 else "")
+    logger.info(f"[DECOMPOSER] Starting decomposition for query: {query_preview}")
+    
+    messages = [
+        SystemMessage(
+            content="""Role: You are an expert in logical decomposition and information retrieval.
                 Your task is to break down complex questions into a series of simpler, sequential sub-questions.
 
 Principles for Decomposition:
@@ -19,13 +26,20 @@ Principles for Decomposition:
 4. Atomicity: Each sub-question should target a single, atomic fact. Avoid combining multiple unrelated queries into one.
 5. Neutral Framing: Phrase sub-questions neutrally without presuming the answer. Do not include calculations (e.g., don't write "subtract X from Y").
 6. Maintain Context: Use the same terminology, timeframes, and entities as the original question to preserve context."""
-            ),
-            HumanMessage(content=state["input"]),
-        ]
-    )
-    print(f"reasoning: {result.reasoning}")
-    print(f"total_subquestions: {result.total_subquestions}")
-    print(f"subquestions: {result.subquestions}")
+        ),
+        HumanMessage(content=state["input"]),
+    ]
+    
+    callback = TokenUsageCallback()
+    result = await llm_decomposer.ainvoke(messages, config={"callbacks": [callback]})
+    
+    token_usage = callback.get_token_usage()
+    raw_response = type("Response", (), {"response_metadata": {"token_usage": token_usage}})()
+    
+    logger.info(f"[DECOMPOSER] Decomposition completed: {result.total_subquestions} subquestions generated")
+    logger.debug(f"[DECOMPOSER] Reasoning: {result.reasoning}")
+    for i, subq in enumerate(result.subquestions, 1):
+        logger.debug(f"[DECOMPOSER] Subquestion {i}: {subq.text}")
 
     return {
         "sub_queries": result.subquestions,
@@ -34,4 +48,5 @@ Principles for Decomposition:
             "total_subquestions": result.total_subquestions,
             "subquestions": result.subquestions,
         },
+        "_raw_response": raw_response,
     }

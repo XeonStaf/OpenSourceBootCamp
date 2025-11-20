@@ -30,10 +30,20 @@ class TaskCreationResponse(BaseModel):
     task_id: str
 
 
+class TaskStatisticsResponse(BaseModel):
+    total_tokens: int = 0
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    validation_count: int = 0
+    timing: Dict[str, float] = {}
+    total_time: float = 0.0
+
+
 class TaskDetailsResponse(BaseModel):
     mode: Literal["pro", "simple"]
     thoughts: str
     thoughts_data: Dict[str, Any] | None = None
+    statistics: TaskStatisticsResponse | None = None
 
 
 class TaskStatusResponse(BaseModel):
